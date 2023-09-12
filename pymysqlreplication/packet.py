@@ -156,8 +156,15 @@ class BinLogPacketWrapper(object):
                     # Extract the actual value from the above error and read the packet again
                     actual = int(str(error).split('Actual=')[1].split('.')[0])
                     return data + self.packet.read(actual)
-
-        return self.packet.read(size)
+        try:
+            return self.packet.read(size)
+        except AssertionError as error:
+            # Assertion error format
+            # AssertionError: Result length not requested length:
+            # Expected=2958. Actual=30. Position: 64250. Data Length: 64280
+            # Extract the actual value from the above error and read the packet again
+            actual = int(str(error).split('Actual=')[1].split('.')[0])
+            return self.packet.read(actual)
 
     def unread(self, data):
         '''Push again data in data buffer. It's use when you want
