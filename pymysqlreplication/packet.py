@@ -147,7 +147,16 @@ class BinLogPacketWrapper(object):
             if len(data) == size:
                 return data
             else:
-                return data + self.packet.read(size - len(data))
+                try:
+                    return data + self.packet.read(size - len(data))
+                except AssertionError as error:
+                    # Assertion error format
+                    # AssertionError: Result length not requested length:
+                    # Expected=2958. Actual=30. Position: 64250. Data Length: 64280
+                    # Extract the actual value from the above error and read the packet again
+                    actual = int(str(error).split('Actual=')[1].split('.')[0])
+                    return data + self.packet.read(actual)
+
         return self.packet.read(size)
 
     def unread(self, data):
